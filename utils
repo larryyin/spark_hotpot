@@ -1,0 +1,56 @@
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileSystem, Path}
+
+def isPathExist(target:String): Boolean = {
+  val fs = FileSystem.get(new Configuration())
+  val targetPath = new Path(target)
+  fs.exists(targetPath)
+}
+
+def writeToFile(text:String, target:String): Unit = {
+  val fs = FileSystem.get(new Configuration())
+  val targetPath = new Path(target)
+  if (fs.exists(targetPath)) fs.delete(targetPath, true)
+  val os = fs.create(new Path(target))
+  os.write(text.getBytes("UTF-8"))
+  os.close()
+}
+
+def mvDir(source:String, target:String): Unit = {
+  val fs = FileSystem.get(new Configuration())
+  fs.rename(new Path(source), new Path(target))
+}
+
+def rmDir(target:String): Unit = {
+  val fs = FileSystem.get(new Configuration())
+  val targetPath = new Path(target)
+  if (fs.exists(targetPath))
+    fs.delete(targetPath, true)
+}
+
+def cpDir(source:String, target:String): Unit = {
+  val conf = new org.apache.hadoop.conf.Configuration()
+  val srcPath = new org.apache.hadoop.fs.Path(source)
+  val dstPath = new org.apache.hadoop.fs.Path(target)
+  org.apache.hadoop.fs.FileUtil.copy(
+    srcPath.getFileSystem(conf),
+    srcPath,
+    dstPath.getFileSystem(conf),
+    dstPath,
+    false,
+    conf
+  )
+}
+
+def mkDir(target:String): Unit = {
+  val fs = FileSystem.get(new Configuration())
+  val targetPath = new Path(target)
+  if (!fs.exists(targetPath))
+    fs.mkdirs(targetPath)
+}
+
+def getSubDirectories(directoryName: String): Array[String] = {
+  val fs = FileSystem.get(new Configuration())
+  val status = fs.listStatus(new Path(directoryName))
+  status.filter(_.isDirectory).map(_.getPath.getName).filter(_!=".DS_Store")
+}
